@@ -4,7 +4,7 @@ import "./style.scss"
 
 type PropsType = {
   closeModal: (param: boolean) => void
-  deleteModal: () => void
+  deleteItem: () => void
 }
 const DeleteModal = (props: PropsType) => {
   return (
@@ -15,7 +15,7 @@ const DeleteModal = (props: PropsType) => {
           <Button
             title="Delete"
             onClick={() => {
-              props.deleteModal()
+              props.deleteItem()
             }}
           />
           <Button

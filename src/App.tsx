@@ -16,37 +16,78 @@ export type TodoItem = {
 }
 
 const App = () => {
-  const [showAddEditModal, setShowAddEditModal] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [newList, setNewList] = useState<TodoItem[]>(taskList)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [deleteID, setDeleteId] = useState("")
-
-  const handleButtonClick = (param: boolean) => {
-    console.log("Кнопка нажата!", param) // Используем переданный параметр
-    setShowAddEditModal(param)
+  const [itemId, setItemId] = useState("")
+  const [title, setTitle] = useState("")
+  const [itemForEdit, setItemForEdit] = useState<TodoItem[]>(taskList)
+  const onCloseAddModalHandler = () => {
+    setShowAddModal(false)
   }
-
+  const onOpenAddModalHandler = () => {
+    setShowAddModal(true)
+  }
   const addNewTaskList = (param: TodoItem) => {
     setNewList([...newList, param])
-    setShowAddEditModal(false)
-    console.log(newList)
+    setShowAddModal(false)
   }
 
-  const openModal = () => {
+  const onCloseEditModalHandler = () => {
+    setShowEditModal(false)
+  }
+  const onOpenEditModalHandler = (id: string) => {
+    setShowEditModal(true)
+    let editValue = newList.filter((f) => f.id == id)
+    if (editValue) {
+      setTitle(editValue[0].title)
+      setItemForEdit(editValue)
+    }
+  }
+  const editTaskList = (param: TodoItem) => {
+    const updatedList = newList.map((task) => {
+      if (task.id === param.id) {
+        return {
+          ...task,
+          title: param.title,
+          priority: param.priority,
+        }
+      }
+      return task
+    })
+    setNewList(updatedList)
+    setShowEditModal(false)
+  }
+
+  const onOpenDeleteModal = () => {
     setShowDeleteModal(true)
+  }
+  const onCloseDeleteModal = () => {
+    setShowDeleteModal(false)
+  }
+  const deleteItem = () => {
+    setNewList(newList.filter((f) => f.id != itemId))
+    onCloseDeleteModal()
   }
 
   const showId = (id: string) => {
-    setDeleteId(id)
+    setItemId(id)
   }
 
-  const deleteItem = () => {
-    setNewList(newList.filter((f) => f.id != deleteID))
-    closeModal()
-  }
-
-  const closeModal = () => {
-    setShowDeleteModal(false)
+  const onTaskUpdated = (param: TodoItem) => {
+    console.log(param)
+    const updatedList = newList.map((task) => {
+      if (task.id === param.id) {
+        return {
+          ...task,
+          status: param.status,
+          progress: param.progress,
+        }
+      }
+      return task
+    })
+    setNewList(updatedList)
   }
 
   return (
@@ -54,22 +95,41 @@ const App = () => {
       <div className="page-wrapper">
         <div className="top-title">
           <h2>Task List</h2>
-          <Button
-            title="Add Task"
-            icon={<Add />}
-            onClick={() => {
-              setShowAddEditModal(true)
-            }}
-          />
+          <Button title="Add Task" icon={<Add />} onClick={onOpenAddModalHandler} />
         </div>
         <div className="task-container">
           {newList.map((task) => (
-            <TaskCard onIdSelected={showId} openModal={openModal} task={task} />
+            <TaskCard
+              onTaskUpdated={onTaskUpdated}
+              key={task.id}
+              openEditModal={(id: string) => onOpenEditModalHandler(id)}
+              onIdSelected={showId}
+              openDeleteModal={onOpenDeleteModal}
+              task={task}
+            />
           ))}
         </div>
       </div>
-      {showAddEditModal && <AddEditTaskForm taskObj={addNewTaskList} onButtonClick={handleButtonClick} />}
-      {showDeleteModal && <DeleteModal deleteModal={deleteItem} closeModal={closeModal} />}
+      {showAddModal && (
+        <AddEditTaskForm
+          inputValue={""}
+          taskName={"Add Task"}
+          buttonName={"Add"}
+          addOrEditItem={addNewTaskList}
+          onCloseModal={onCloseAddModalHandler}
+        />
+      )}
+      {showDeleteModal && <DeleteModal deleteItem={deleteItem} closeModal={onCloseDeleteModal} />}
+      {showEditModal && (
+        <AddEditTaskForm
+          obj={itemForEdit}
+          inputValue={title}
+          taskName={"Edit Task"}
+          buttonName={"Edit"}
+          addOrEditItem={editTaskList}
+          onCloseModal={onCloseEditModalHandler}
+        />
+      )}
     </div>
   )
 }
